@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Replace with your actual n8n Webhook URL
-            const WEBHOOK_URL = "https://your-n8n-instance.com/webhook/your-endpoint-id";
+            const WEBHOOK_URL = "http://localhost:5678/webhook-test/Image generate";
 
             const payload = {
                 topic: topic,

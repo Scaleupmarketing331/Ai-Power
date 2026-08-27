@@ -2,35 +2,350 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Facebook Auto Poster</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Facebook Content Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        textarea, input { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
-        button { background: #1877f2; color: white; padding: 12px; border: none; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #165ec9; }
-        #status { margin-top: 15px; font-weight: bold; color: green; }
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --panel-border: #334155;
+            --primary-blue: #2563eb;
+            --accent-cyan: #06b6d4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
+        }
+
+        /* Top Header */
+        .navbar {
+            height: 70px;
+            border-bottom: 1px solid var(--panel-border);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.25rem;
+        }
+
+        .brand-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            padding: 6px 14px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success-color);
+        }
+
+        /* Layout Area */
+        .app-container {
+            max-width: 1250px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        .grid-workspace {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid-workspace { grid-template-columns: 1fr; }
+        }
+
+        /* Panels */
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 1.8rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Form Controls */
+        .form-group { margin-bottom: 1.2rem; }
+
+        .form-label {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        /* Submit Button */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+        }
+
+        /* Live Facebook Preview */
+        .fb-preview-card {
+            background: #242526;
+            border-radius: 12px;
+            border: 1px solid #3a3b3c;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .fb-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fb-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1877f2, #00c6ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .fb-user-info h4 { font-size: 0.95rem; color: #e4e6eb; font-weight: 600; }
+        .fb-user-info span { font-size: 0.75rem; color: #b0b3b8; }
+
+        .fb-body {
+            padding: 12px 16px;
+            color: #e4e6eb;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            min-height: 120px;
+            white-space: pre-wrap;
+        }
+
+        .fb-placeholder { color: #72767d; font-style: italic; }
+
+        /* Status Toast */
+        .toast-banner {
+            margin-top: 1.2rem;
+            padding: 0.9rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-banner.success { background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; }
+        .toast-banner.error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
+        .toast-banner.loading { background: rgba(37, 99, 235, 0.12); border: 1px solid rgba(37, 99, 235, 0.3); color: #60a5fa; }
     </style>
 </head>
 <body>
-    <h2>Facebook AI Auto-Poster</h2>
-    
-    <label>Topic / Idea:</label>
-    <textarea id="topic" rows="4" placeholder="Type your post idea here..."></textarea>
-    
-    <label>Facebook Page ID:</label>
-    <input type="text" id="page_id" placeholder="Your FB Page ID">
-    
-    <label>Page Access Token:</label>
-    <input type="password" id="page_token" placeholder="Your Page Access Token">
 
-    <button onclick="sendPost()">Publish Post via AI</button>
+    <!-- Header Navigation -->
+    <header class="navbar">
+        <div class="brand-logo">
+            <div class="logo-icon"><i class="fa-solid fa-robot"></i></div>
+            <span>AutoPoster <span style="color: var(--primary-blue);">Studio</span></span>
+        </div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            <span>n8n Engine Ready</span>
+        </div>
+    </header>
 
-    <div id="status"></div>
+    <!-- App Main Layout -->
+    <main class="app-container">
+        <div class="grid-workspace">
+            
+            <!-- Form Input Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-pen-to-square" style="color: var(--accent-cyan);"></i> Create Automation Post</h2>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Topic / Idea Prompts:</label>
+                    <textarea id="topic" class="form-control" rows="4" placeholder="Type your post idea here..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Facebook Page ID:</label>
+                    <input type="text" id="page_id" class="form-control" placeholder="Your FB Page ID">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Page Access Token:</label>
+                    <input type="password" id="page_token" class="form-control" placeholder="Your Page Access Token">
+                </div>
+
+                <button class="btn-primary" onclick="sendPost()" id="submitBtn">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span id="btnText">Publish Post via AI</span>
+                </button>
+
+                <div id="toastBanner" class="toast-banner">
+                    <i id="toastIcon" class="fa-solid"></i>
+                    <span id="toastMessage"></span>
+                </div>
+            </div>
+
+            <!-- Live Output Preview -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fa-brands fa-facebook" style="color: #1877f2;"></i> Live Post Preview</h2>
+                </div>
+
+                <div class="fb-preview-card">
+                    <div class="fb-header">
+                        <div class="fb-avatar">FB</div>
+                        <div class="fb-user-info">
+                            <h4>Your Facebook Page</h4>
+                            <span>Just now · <i class="fa-solid fa-earth-americas"></i></span>
+                        </div>
+                    </div>
+                    <div class="fb-body" id="previewContent">
+                        <span class="fb-placeholder">Write a topic on the left to view a live preview of your content prompt...</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
     <script>
+        // Realtime Preview Sync
+        const topicInput = document.getElementById('topic');
+        const previewContent = document.getElementById('previewContent');
+
+        topicInput.addEventListener('input', (e) => {
+            if (e.target.value.trim() === "") {
+                previewContent.innerHTML = `<span class="fb-placeholder">Write a topic on the left to view a live preview of your content prompt...</span>`;
+            } else {
+                previewContent.innerText = e.target.value;
+            }
+        });
+
         async function sendPost() {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerText = "Generating AI Content & Posting...";
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
             
             // Apne n8n Webhook ka Production / Test URL yahan dalein
             const WEBHOOK_URL = "YOUR_N8N_WEBHOOK_URL_HERE";
@@ -41,6 +356,11 @@
                 page_token: document.getElementById('page_token').value
             };
 
+            // Loading UI State
+            submitBtn.disabled = true;
+            btnText.innerText = "Processing via n8n...";
+            showToast("loading", "fa-spinner fa-spin", "Generating AI Content & Posting...");
+
             try {
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
@@ -49,13 +369,27 @@
                 });
                 
                 if (response.ok) {
-                    statusDiv.innerText = "Post Successfully Published on Facebook!";
+                    showToast("success", "fa-circle-check", "Post Successfully Published on Facebook!");
                 } else {
-                    statusDiv.innerText = "Failed to Post. Check n8n logs.";
+                    showToast("error", "fa-triangle-exclamation", "Failed to Post. Check n8n logs.");
                 }
             } catch (err) {
-                statusDiv.innerText = "Error: " + err.message;
+                showToast("error", "fa-circle-xmark", "Error: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                btnText.innerText = "Publish Post via AI";
             }
+        }
+
+        function showToast(type, iconClass, message) {
+            const toastBanner = document.getElementById('toastBanner');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastBanner.className = `toast-banner ${type}`;
+            toastIcon.className = `fa-solid ${iconClass}`;
+            toastMessage.innerText = message;
+            toastBanner.style.display = 'flex';
         }
     </script>
 </body>

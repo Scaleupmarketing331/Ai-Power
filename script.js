@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Replace with your actual n8n Webhook URL
-            const WEBHOOK_URL = "http://localhost:5678/webhook-test/Image generate";
+            const WEBHOOK_URL = "https://a1b2-c3d4.ngrok-free.app/webhook-test/Image%20generate";
 
             const payload = {
                 topic: topic,

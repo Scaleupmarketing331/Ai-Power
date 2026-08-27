@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Facebook Auto Poster</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        textarea, input { width: 100%; margin-bottom: 12px; padding: 10px; box-sizing: border-box; }
+        button { background: #1877f2; color: white; padding: 12px; border: none; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #165ec9; }
+        #status { margin-top: 15px; font-weight: bold; color: green; }
+    </style>
+</head>
+<body>
+    <h2>Facebook AI Auto-Poster</h2>
+    
+    <label>Topic / Idea:</label>
+    <textarea id="topic" rows="4" placeholder="Type your post idea here..."></textarea>
+    
+    <label>Facebook Page ID:</label>
+    <input type="text" id="page_id" placeholder="Your FB Page ID">
+    
+    <label>Page Access Token:</label>
+    <input type="password" id="page_token" placeholder="Your Page Access Token">
+
+    <button onclick="sendPost()">Publish Post via AI</button>
+
+    <div id="status"></div>
+
+    <script>
+        async function sendPost() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "Generating AI Content & Posting...";
+            
+            // Apne n8n Webhook ka Production / Test URL yahan dalein
+            const WEBHOOK_URL = "YOUR_N8N_WEBHOOK_URL_HERE";
+
+            const payload = {
+                topic: document.getElementById('topic').value,
+                page_id: document.getElementById('page_id').value,
+                page_token: document.getElementById('page_token').value
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (response.ok) {
+                    statusDiv.innerText = "Post Successfully Published on Facebook!";
+                } else {
+                    statusDiv.innerText = "Failed to Post. Check n8n logs.";
+                }
+            } catch (err) {
+                statusDiv.innerText = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

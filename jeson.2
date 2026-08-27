@@ -1,0 +1,122 @@
+{
+  "name": "Free AI FB Poster (Standard HTTP Gemini)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-fb-post",
+        "responseMode": "onReceived",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "node-webhook",
+      "name": "Webhook HTML",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_GEMINI_API_KEY_HERE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"You are a social media expert. Based on topic: \\\"{{ $json.body.topic }}\\\", respond strictly with a JSON string having 3 keys: \\\"title\\\", \\\"caption\\\", and \\\"image_keyword\\\" (2-3 words for image search). Do not include markdown or backticks.\"\n    }]\n  }]\n}",
+        "options": {}
+      },
+      "id": "node-gemini-http",
+      "name": "Gemini API Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $('Webhook HTML').item.json.body.page_id }}/photos",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "url",
+              "value": "=https://image.pollinations.ai/prompt/{{ encodeURIComponent(JSON.parse($json.candidates[0].content.parts[0].text).image_keyword) }}?width=1080&height=1080&nologo=true"
+            },
+            {
+              "name": "caption",
+              "value": "={{ JSON.parse($json.candidates[0].content.parts[0].text).title }}\n\n{{ JSON.parse($json.candidates[0].content.parts[0].text).caption }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $('Webhook HTML').item.json.body.page_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-facebook",
+      "name": "Facebook Graph API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "YOUR_EMAIL@gmail.com",
+        "toEmail": "YOUR_EMAIL@gmail.com",
+        "subject": "🚀 Facebook Post Successfully Published!",
+        "text": "=Assalam-o-Alaikum Master,\n\nAapka Facebook post publish ho gaya hai!",
+        "options": {}
+      },
+      "id": "node-email",
+      "name": "Send Email Notification",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook HTML": {
+      "main": [
+        [
+          {
+            "node": "Gemini API Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini API Call": {
+      "main": [
+        [
+          {
+            "node": "Facebook Graph API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Graph API": {
+      "main": [
+        [
+          {
+            "node": "Send Email Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

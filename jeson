@@ -1,0 +1,79 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-fb-post",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "1",
+      "name": "Webhook HTML",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash",
+        "prompt": "=Create an engaging Facebook post based on this topic: {{ $json.body.topic }}.\n\nOutput ONLY a JSON object with two keys: \"title\" and \"description\". Do not include any extra text or markdown code blocks.",
+        "options": {}
+      },
+      "id": "2",
+      "name": "Gemini AI Generator",
+      "type": "@n8n/n8n-nodes-langchain.chainLLM",
+      "typeVersion": 1.4,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $json.body.page_id }}/feed",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ JSON.parse($json.text).title }}\n\n{{ JSON.parse($json.text).description }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json.body.page_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3",
+      "name": "Post to Facebook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [690, 300]
+    }
+  ],
+  "connections": {
+    "Webhook HTML": {
+      "main": [
+        [
+          {
+            "node": "Gemini AI Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini AI Generator": {
+      "main": [
+        [
+          {
+            "node": "Post to Facebook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
